@@ -1,3 +1,5 @@
 /dist
 *.d.ts
 test.tsx
+.eslintrc.js
+/demo

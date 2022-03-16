@@ -9,19 +9,22 @@
  */
 export default {
     data: new Map<string, unknown>(),
-    get<T>(key: string, defaultValue: T): T | undefined {
+    get<T>(key: string, defaultValue: T, options?: { isSimpleString?: boolean }): T | undefined {
         try {
             return this.data.has(key)
                 ? (this.data.get(key) as T | undefined)
-                : parseJSON<T>(localStorage.getItem(key))
+                : options?.isSimpleString === true
+                    ? localStorage.getItem(key) as unknown as T | undefined
+                    : parseJSON<T>(localStorage.getItem(key));
         } catch {
             return defaultValue
         }
     },
-    set<T>(key: string, value: T): void {
+    set<T>(key: string, value: T, options?: { isSimpleString?: boolean }): void {
         try {
-            localStorage.setItem(key, JSON.stringify(value))
-
+            localStorage.setItem(key, (typeof value !== 'string' || !(options?.isSimpleString === true))
+            ? JSON.stringify(value)
+            : value);
             this.data.delete(key)
         } catch {
             this.data.set(key, value)
@@ -41,8 +44,8 @@ function parseJSON<T>(value: string | null): T | undefined {
     return value === 'undefined'
         ? undefined
         : // - `JSON.parse()` TypeScript types don't accept non-string values, this is why we pass
-          //   empty string which will throw an error
-          // - when `value` is `null`, we will pass empty string and the `JSON.parse()` will throw
-          //   an error which we need and is required by the parent function
-          JSON.parse(value ?? '')
+        //   empty string which will throw an error
+        // - when `value` is `null`, we will pass empty string and the `JSON.parse()` will throw
+        //   an error which we need and is required by the parent function
+        JSON.parse(value ?? '')
 }

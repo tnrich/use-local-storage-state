@@ -20,10 +20,17 @@ describe('createLocalStorageStateHook()', () => {
         expect(todos).toEqual(['first', 'second'])
     })
 
-    it(`initial state isn't written into localStorage`, () => {
+    it(`initial state is written into localStorage`, () => {
         renderHook(() => useLocalStorageState('todos', { defaultValue: ['first', 'second'] }))
 
         expect(localStorage.getItem('todos')).toEqual(JSON.stringify(['first', 'second']))
+    })
+
+    it(`initial simple string state is written into localStorage`, () => {
+        renderHook(() =>
+            useLocalStorageState('color', { defaultValue: 'red', isSimpleString: true }),
+        )
+        expect(localStorage.getItem('color')).toEqual('red')
     })
 
     it('updates state', () => {

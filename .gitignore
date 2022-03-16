@@ -1,8 +1,9 @@
 /coverage
-/node_modules
 
 *.js
 *.d.ts
 yarn.lock
 yarn-error.log
 .eslintcache
+node_modules
+/demo/src/es
