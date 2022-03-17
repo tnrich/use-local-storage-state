@@ -1,7 +1,8 @@
 /coverage
-
-*.js
+/es
+/src/**/*.js
 *.d.ts
+/index.js
 yarn.lock
 yarn-error.log
 .eslintcache

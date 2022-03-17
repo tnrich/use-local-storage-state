@@ -26,6 +26,7 @@
     "jsnext:main": "es/index.js",
     "sideEffects": false,
     "scripts": {
+        "start": "cd demo; yarn start",
         "build": "tsc && tsc --project tsconfig.esm.json",
         "size": "yarn run build && size-limit",
         "lint": "eslint --cache --format=pretty --ext=.ts ./",
@@ -73,7 +74,8 @@
         "react-test-renderer": "^17.0.1",
         "size-limit": "^7.0.5",
         "ts-jest": "^27.1.3",
-        "typescript": "^4.5.4"
+        "typescript": "^4.5.4",
+        "use-local-storage-state": "^16.0.1"
     },
     "size-limit": [
         {

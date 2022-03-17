@@ -11,12 +11,12 @@
     "react-scripts": "5.0.0"
   },
   "scripts": {
-    "start": "react-app-rewired start",
-    "//start": "ln -s ../../es/ ./src/es; react-app-rewired start",
-    "build": "react-app-rewired build",
-    "test": "react-app-rewired test --env=jsdom",
+    "start": "PORT=3006 DISABLE_ESLINT_PLUGIN=true react-app-rewired start",
+    "build": "PORT=3006 DISABLE_ESLINT_PLUGIN=true react-app-rewired build",
+    "test": "PORT=3006 DISABLE_ESLINT_PLUGIN=true react-app-rewired test --env=jsdom",
     "eject": "react-scripts eject"
   },
+
   "browserslist": [
     ">0.2%",
     "not dead",

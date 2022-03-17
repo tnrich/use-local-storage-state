@@ -27,29 +27,74 @@ export type LocalStorageState<T> = [
         removeItem: () => void
     },
 ]
+// interface SameTabStorageEvent extends CustomEvent {
+//     /** Returns the key of the storage item being changed. */
+//     readonly detail: {key: string};
+// }
+
+Storage.prototype.setItem = new Proxy(Storage.prototype.setItem, {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    apply(target, thisArg, argumentList) {
+        const event = new CustomEvent("sameTabStorage", {
+            detail: {
+                key: argumentList[0],
+                oldValue: thisArg.getItem(argumentList[0]),
+                newValue: argumentList[1],
+            },
+        });
+        window.dispatchEvent(event);
+        return Reflect.apply(target, thisArg, argumentList);
+    },
+});
+
+Storage.prototype.removeItem = new Proxy(Storage.prototype.removeItem, {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    apply(target, thisArg, argumentList) {
+        const event = new CustomEvent("sameTabStorage", {
+            detail: {
+                key: argumentList[0],
+            },
+        });
+        window.dispatchEvent(event);
+        return Reflect.apply(target, thisArg, argumentList);
+    },
+});
+
+Storage.prototype.clear = new Proxy(Storage.prototype.clear, {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    apply(target, thisArg, argumentList) {
+        const event = new CustomEvent("sameTabStorage", {
+            detail: {
+                key: "__all__",
+            },
+        });
+        window.dispatchEvent(event);
+        return Reflect.apply(target, thisArg, argumentList);
+    },
+});
 
 export default function useLocalStorageState(
     key: string,
-    options?: { ssr: boolean },
+    options?: { ssr: boolean, isSimpleString?: boolean },
 ): LocalStorageState<unknown>
 export default function useLocalStorageState<T>(
     key: string,
-    options?: { ssr: boolean },
+    options?: { ssr: boolean, isSimpleString?: boolean },
 ): LocalStorageState<T | undefined>
 export default function useLocalStorageState<T>(
     key: string,
-    options?: { defaultValue?: T; ssr?: boolean },
+    options?: { defaultValue?: T; ssr?: boolean, isSimpleString?: boolean },
 ): LocalStorageState<T>
 export default function useLocalStorageState<T = undefined>(
     key: string,
-    options?: { defaultValue?: T; ssr?: boolean },
+    options?: { defaultValue?: T; ssr?: boolean, isSimpleString?: boolean },
 ): LocalStorageState<T | undefined> {
     // SSR support
     if (typeof window === 'undefined') {
         return [
             options?.defaultValue,
-            (): void => {},
-            { isPersistent: true, removeItem: (): void => {} },
+            (): void => { },
+            { isPersistent: true, removeItem: (): void => { } },
         ]
     }
 
@@ -59,8 +104,9 @@ export default function useLocalStorageState<T = undefined>(
 
 function useClientLocalStorageState<T>(
     key: string,
-    options?: { defaultValue?: T; ssr?: boolean },
+    options?: { defaultValue?: T; ssr?: boolean, isSimpleString?: boolean },
 ): LocalStorageState<T | undefined> {
+    const isFirstRender = useRef(true)
     const defaultValue = useRef(options?.defaultValue).current
     // `id` changes every time a change in the `localStorage` occurs
     const [id, forceUpdate] = useReducer((number) => number + 1, 0)
@@ -69,16 +115,11 @@ function useClientLocalStorageState<T>(
             const isCallable = (value: unknown): value is (value: T | undefined) => T | undefined =>
                 typeof value === 'function'
             const newUnwrappedValue = isCallable(newValue)
-                ? newValue(storage.get(key, defaultValue))
+                ? newValue(storage.get(key, defaultValue, options))
                 : newValue
-
-            storage.set(key, newUnwrappedValue)
+            storage.set(key, newUnwrappedValue, options)
 
             unstable_batchedUpdates(() => {
-                // 🐛 `setValue()` during render doesn't work
-                // https://github.com/astoilkov/use-local-storage-state/issues/43
-                forceUpdate()
-
                 for (const update of activeHooks) {
                     if (update.key === key) {
                         update.forceUpdate()
@@ -86,6 +127,7 @@ function useClientLocalStorageState<T>(
                 }
             })
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [key, defaultValue],
     )
 
@@ -99,9 +141,21 @@ function useClientLocalStorageState<T>(
             }
         }
 
+        const onStorageSameTab = (e: Event): void => {
+            if (!isCustomEvent(e)) {
+                throw new Error('not a custom event');
+            }
+            if (e.detail?.key === key || key === "__all__") {
+                forceUpdate();
+            }
+        };
         window.addEventListener('storage', onStorage)
-
-        return (): void => window.removeEventListener('storage', onStorage)
+        window.addEventListener("sameTabStorage", onStorageSameTab);
+        return (): void => {
+            window.removeEventListener("sameTabStorage", onStorageSameTab);
+            window.removeEventListener('storage', onStorage)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [key])
 
     // add this hook to the `activeHooks` array. see the `activeHooks` declaration above for a
@@ -114,22 +168,6 @@ function useClientLocalStorageState<T>(
         }
     }, [key])
 
-    // - SSR support
-    // - not inside a `useLayoutEffect` because this way we skip the calls to `useEffect()` and
-    //   `useLayoutEffect()` for the first render (which also increases performance)
-    // - inspired by: https://github.com/astoilkov/use-local-storage-state/pull/40
-    // - related: https://github.com/astoilkov/use-local-storage-state/issues/39
-    // - related: https://github.com/astoilkov/use-local-storage-state/issues/43
-    const isFirstRenderRef = useRef(true)
-    const isFirstSsrRender = useRef(options?.ssr).current === true && isFirstRenderRef.current
-    isFirstRenderRef.current = false
-    if (
-        isFirstSsrRender &&
-        (storage.data.has(key) || defaultValue !== storage.get(key, defaultValue))
-    ) {
-        forceUpdate()
-    }
-
     // initial issue: https://github.com/astoilkov/use-local-storage-state/issues/26
     // issues that were caused by incorrect initial and secondary implementations:
     // - https://github.com/astoilkov/use-local-storage-state/issues/30
@@ -139,12 +177,30 @@ function useClientLocalStorageState<T>(
         !storage.data.has(key) &&
         localStorage.getItem(key) === null
     ) {
-        storage.set(key, defaultValue)
+        storage.set(key, defaultValue, options)
     }
+
+
+    // - SSR support
+    // - not inside a `useLayoutEffect` because this way we skip the calls to `useEffect()` and
+    //   `useLayoutEffect()` for the first render (which also increases performance)
+    // - inspired by: https://github.com/astoilkov/use-local-storage-state/pull/40
+    // - related: https://github.com/astoilkov/use-local-storage-state/issues/39
+    // - related: https://github.com/astoilkov/use-local-storage-state/issues/43
+    const isFirstSsrRender = useRef(options?.ssr).current === true && isFirstRender.current
+    if (
+        isFirstSsrRender &&
+        (storage.data.has(key) || defaultValue !== storage.get(key, defaultValue, options))
+    ) {
+        forceUpdate()
+        isFirstRender.current = false
+    }
+
+
 
     return useMemo(
         () => [
-            isFirstSsrRender ? defaultValue : storage.get(key, defaultValue),
+            isFirstSsrRender ? defaultValue : storage.get(key, defaultValue, options),
             setState,
             {
                 isPersistent: isFirstSsrRender || !storage.data.has(key),
@@ -169,4 +225,8 @@ function useClientLocalStorageState<T>(
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [id, key],
     )
+}
+
+function isCustomEvent(event: Event): event is CustomEvent {
+    return 'detail' in event;
 }
