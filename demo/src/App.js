@@ -86,7 +86,6 @@ export default function MyComponent() {
 }
 
 function AnothaComponent() {
-    const [int, setNewInt] = useState(1)
     const [color, setColor] = useLocalStorageState('color', {
         defaultValue: `defaultNestedColor`,
         isSimpleString: true,
