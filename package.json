@@ -1,15 +1,15 @@
 {
-    "name": "use-local-storage-state",
-    "version": "16.0.0",
-    "description": "React hook that persist data in localStorage",
+    "name": "tg-use-local-storage-state",
+    "version": "16.0.1",
+    "description": "React hook that persists data in localStorage",
     "license": "MIT",
-    "repository": "astoilkov/use-local-storage-state",
-    "funding": "https://github.com/sponsors/astoilkov",
-    "homepage": "https://github.com/astoilkov/use-local-storage-state",
+    "repository": "tnrich/use-local-storage-state",
+    "funding": "https://github.com/sponsors/tnrich",
+    "homepage": "https://github.com/tnrich/use-local-storage-state",
     "author": {
         "name": "Antonio Stoilkov",
-        "email": "hello@astoilkov.com",
-        "url": "http://astoilkov.com"
+        "email": "hello@tnrich.com",
+        "url": "http://tnrich.com"
     },
     "keywords": [
         "react",

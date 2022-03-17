@@ -1,35 +1,42 @@
-# `use-local-storage-state`
+# `tg-use-local-storage-state`
+
+This is a fork of https://github.com/astoilkov/use-local-storage-state
+that does 3 main things
+
+-   it syncs when changes are made to localStorage within the _same_ browser tab
+-   it adds an option `isSimpleString` (default false) which simplifies the storage of simple string values
+-   it adds a more complex cypress test to the existing test suite
 
 > React hook that persist data in `localStorage`
 
-[![Downloads](https://img.shields.io/npm/dm/use-local-storage-state)](https://www.npmjs.com/package/use-local-storage-state)
-[![Gzipped Size](https://badgen.net/bundlephobia/minzip/use-local-storage-state)](https://bundlephobia.com/result?p=use-local-storage-state)
+[![Downloads](https://img.shields.io/npm/dm/tg-use-local-storage-state)](https://www.npmjs.com/package/tg-use-local-storage-state)
+[![Gzipped Size](https://badgen.net/bundlephobia/minzip/tg-use-local-storage-state)](https://bundlephobia.com/result?p=tg-use-local-storage-state)
 [![Test Coverage](https://img.shields.io/codeclimate/coverage/astoilkov/use-local-storage-state)](https://codeclimate.com/github/astoilkov/use-local-storage-state/test_coverage)
 [![Build Status](https://www.travis-ci.com/astoilkov/use-local-storage-state.svg?branch=master)](https://travis-ci.org/astoilkov/use-local-storage-state)
 
 ## Install
 
 ```shell
-npm install use-local-storage-state
+npm install tg-use-local-storage-state
 ```
 
 ## Why
 
-- Actively maintained for the past 2 years — see [contributions](https://github.com/astoilkov/use-local-storage-state/graphs/contributors) page.
-- SSR support with handling of [hydration mismatches](https://github.com/astoilkov/use-local-storage-state/issues/23).
-- Handles the `Window` [`storage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event) event and updates changes across browser tabs, windows, and iframe's.
-- In-memory fallback when `localStorage` throws an error and can't store the data. Provides a `isPersistent` API to let you notify the user their data isn't currently being stored.
-- Aiming for high-quality with [my open-source principles](https://astoilkov.com/my-open-source-principles).
+-   Actively maintained for the past 2 years — see [contributions](https://github.com/astoilkov/use-local-storage-state/graphs/contributors) page.
+-   SSR support with handling of [hydration mismatches](https://github.com/astoilkov/use-local-storage-state/issues/23).
+-   Handles the `Window` [`storage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event) event and updates changes across browser tabs, windows, and iframe's.
+-   In-memory fallback when `localStorage` throws an error and can't store the data. Provides a `isPersistent` API to let you notify the user their data isn't currently being stored.
+-   Aiming for high-quality with [my open-source principles](https://astoilkov.com/my-open-source-principles).
 
 ## Usage
 
 ```typescript
-import useLocalStorageState from 'use-local-storage-state'
+import useLocalStorageState from 'tg-use-local-storage-state'
 
 export default function Todos() {
     const [todos, setTodos] = useLocalStorageState('todos', {
         ssr: true,
-        defaultValue: ['buy avocado', 'do 50 push-ups']
+        defaultValue: ['buy avocado', 'do 50 push-ups'],
     })
 }
 ```
@@ -38,16 +45,16 @@ export default function Todos() {
 <summary>Todo list example + CodeSandbox link</summary>
 <p></p>
 
-You can experiment with the example [here](https://codesandbox.io/s/todos-example-use-local-storage-state-pewbql?file=/src/App.tsx).
+You can experiment with the example [here](https://codesandbox.io/s/todos-example-tg-use-local-storage-state-pewbql?file=/src/App.tsx).
 
 ```tsx
 import React, { useState } from 'react'
-import useLocalStorageState from 'use-local-storage-state'
+import useLocalStorageState from 'tg-use-local-storage-state'
 
 export default function Todos() {
     const [todos, setTodos] = useLocalStorageState('todos', {
         ssr: true,
-        defaultValue: ['buy avocado']
+        defaultValue: ['buy avocado'],
     })
     const [query, setQuery] = useState('')
 
@@ -58,15 +65,54 @@ export default function Todos() {
 
     return (
         <>
-            <input value={query} onChange={e => setQuery(e.target.value)} />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} />
             <button onClick={onClick}>Create</button>
-            {todos.map(todo => (
+            {todos.map((todo) => (
                 <div>{todo}</div>
             ))}
         </>
     )
 }
+```
 
+</details>
+
+<details>
+<summary>Simple string example + CodeSandbox link</summary>
+<p></p>
+
+You can experiment with the example [here](https://codesandbox.io/s/todos-example-tg-use-local-storage-state-pewbql?file=/src/App.tsx).
+
+```tsx
+import React, { useState } from 'react'
+import useLocalStorageState from 'tg-use-local-storage-state'
+
+export default function Color() {
+    const [color, setColor] = useLocalStorageState('color', {
+        isSimpleString: true,
+        defaultValue: 'blue',
+    })
+
+    return (
+        <>
+            <button
+                onClick={function onClick() {
+                    setColor('newColor')
+                }}
+            >
+                Set new color via hook
+            </button>
+            <button
+                onClick={function onClick() {
+                    setColor('newColorFromLocalStorage')
+                }}
+            >
+                Set new color just by updating localstorage (not necessarily recommended but this will work)
+            </button>
+            <div>{color}</div>
+        </>
+    )
+}
 ```
 
 </details>
@@ -75,15 +121,15 @@ export default function Todos() {
 <summary>SSR support</summary>
 <p></p>
 
-SSR supports includes handling of hydration mismatches. This prevents the following error:  `Warning: Expected server HTML to contain a matching ...`. This is the only library I'm aware of that handles this case. For more, see [discussion here](https://github.com/astoilkov/use-local-storage-state/issues/23).
+SSR supports includes handling of hydration mismatches. This prevents the following error: `Warning: Expected server HTML to contain a matching ...`. This is the only library I'm aware of that handles this case. For more, see [discussion here](https://github.com/astoilkov/use-local-storage-state/issues/23).
 
 ```tsx
-import useLocalStorageState from 'use-local-storage-state'
+import useLocalStorageState from 'tg-use-local-storage-state'
 
 export default function Todos() {
     const [todos, setTodos] = useLocalStorageState('todos', {
         ssr: true,
-        defaultValue: ['buy avocado', 'do 50 push-ups']
+        defaultValue: ['buy avocado', 'do 50 push-ups'],
     })
 }
 ```
@@ -98,21 +144,22 @@ There are a few cases when `localStorage` [isn't available](https://github.com/a
 
 ```tsx
 import React, { useState } from 'react'
-import useLocalStorageState from 'use-local-storage-state'
+import useLocalStorageState from 'tg-use-local-storage-state'
 
 export default function Todos() {
     const [todos, setTodos, { isPersistent }] = useLocalStorageState('todos', {
-        defaultValue: ['buy avocado']
+        defaultValue: ['buy avocado'],
     })
 
     return (
         <>
-            {todos.map(todo => (<div>{todo}</div>))}
+            {todos.map((todo) => (
+                <div>{todo}</div>
+            ))}
             {!isPersistent && <span>Changes aren't currently persisted.</span>}
         </>
     )
 }
-
 ```
 
 </details>
@@ -124,11 +171,11 @@ export default function Todos() {
 The `removeItem()` method will reset the value to its default and will remove the key from the `localStorage`. It returns to the same state as when the hook was initially created.
 
 ```tsx
-import useLocalStorageState from 'use-local-storage-state'
+import useLocalStorageState from 'tg-use-local-storage-state'
 
 export default function Todos() {
     const [todos, setTodos, { removeItem }] = useLocalStorageState('todos', {
-        defaultValue: ['buy avocado']
+        defaultValue: ['buy avocado'],
     })
 
     function onClick() {
@@ -144,8 +191,9 @@ export default function Todos() {
 ### `useLocalStorageState(key, options?)`
 
 Returns `[value, setValue, { removeItem, isPersistent }]` when called. The first two values are the same as `useState()`. The third value contains two extra properties:
-- `removeItem()` — calls `localStorage.removeItem(key)` and resets the hook to it's default state
-- `isPersistent` — `boolean` property that returns `false` if `localStorage` is throwing an error and the data is stored only in-memory
+
+-   `removeItem()` — calls `localStorage.removeItem(key)` and resets the hook to it's default state
+-   `isPersistent` — `boolean` property that returns `false` if `localStorage` is throwing an error and the data is stored only in-memory
 
 ### `key`
 
@@ -174,6 +222,7 @@ Enables SSR support and handles hydration mismatches. Not enabling this can caus
 ## Alternatives
 
 These are the best alternatives to my repo I have found so far:
-- [donavon/use-persisted-state](https://github.com/donavon/use-persisted-state)
-- [imbhargav5/rooks](https://github.com/imbhargav5/rooks/blob/master/packages/localstorage-state/README.md)
-- [dance2die/react-use-localstorage](https://github.com/dance2die/react-use-localstorage)
+
+-   [donavon/use-persisted-state](https://github.com/donavon/use-persisted-state)
+-   [imbhargav5/rooks](https://github.com/imbhargav5/rooks/blob/master/packages/localstorage-state/README.md)
+-   [dance2die/react-use-localstorage](https://github.com/dance2die/react-use-localstorage)
