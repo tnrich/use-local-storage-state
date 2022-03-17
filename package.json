@@ -38,7 +38,7 @@
         "node": ">=12"
     },
     "files": [
-        "index.js",
+        "./index.js",
         "src/*.js",
         "index.d.ts",
         "src/*.d.ts",
