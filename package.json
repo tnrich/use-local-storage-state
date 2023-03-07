@@ -1,6 +1,6 @@
 {
     "name": "tg-use-local-storage-state",
-    "version": "16.0.2",
+    "version": "16.0.3",
     "description": "React hook that persists data in localStorage",
     "license": "MIT",
     "repository": "tnrich/use-local-storage-state",
