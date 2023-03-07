@@ -1,6 +1,6 @@
 {
     "name": "tg-use-local-storage-state",
-    "version": "16.0.1",
+    "version": "16.0.2",
     "description": "React hook that persists data in localStorage",
     "license": "MIT",
     "repository": "tnrich/use-local-storage-state",
@@ -24,7 +24,7 @@
     ],
     "module": "es/index.js",
     "jsnext:main": "es/index.js",
-    "exports":"./es/index.js",
+    "exports": "./es/index.js",
     "sideEffects": false,
     "scripts": {
         "start": "cd demo; yarn start",
